@@ -40,16 +40,16 @@ function main(){
 
   var balls = [];
   for (i=1; i<=4; i++){
-    let r = 40;
+    let r = 28;
     let x = 1100;
     let y = 10+(i*90);
 
     let vx = 0;
     let vy = 0;
-    balls.push(new Pleko("Bola "+i,x,y,r,vx,vy));
+    balls.push(new Pleko("Bola "+i, x, y, r, vx, vy, false, "#f40"));
   }
 
-  var player = new Pleko("Player", 200, 300, 100, 0, 0, true, '#fff');
+  var player = new Pleko("Player", 200, 300, 30, 0, 0, true, '#fff');
   
   var objs = [...balls, player];
 
