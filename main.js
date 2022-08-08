@@ -46,17 +46,23 @@ function main(){
   var ctx = createStage();
 
   var balls = [];
-  for (i=1; i<=4; i++){
-    let r = 28;
-    let x = 1000;
-    let y = 50+(i*90);
+  var cols = 5;
+  var rows = 6;
+  for (i=0; i<cols; i++){
+    for (j=0; j<rows; j++){
+      var id = ((i*rows)+j)+1;
+      var r = 28;
+      var x = 800 + i*3*r;
+      var y = 120 + j*3*r;
+  
+      let vx = 0;
+      let vy = 0;
+      balls.push(new Pleko(id, x, y, r, vx, vy, false));
+    }
 
-    let vx = 0;
-    let vy = 0;
-    balls.push(new Pleko("Bola "+i, x, y, r, vx, vy, false, "#f40"));
   }
 
-  var player = new Pleko("Player", 200, 300, 30, 0, 0, true, '#fff');
+  var player = new Pleko("Player", 200, ctx.canvas.height/2, 30, 0, 0, true, '#fff');
 
   var reg1 = new Region(0,0,56,56);
   var reg2 = new Region(0,ctx.canvas.height-56,56,56);
@@ -81,7 +87,6 @@ function main(){
     ctx.cls();
     regions.forEach(r=>r.draw());
     objs.filter(a=>a.active).forEach(o=>{
-      console.log(o.id)
       o.draw();
       o.update();
     });

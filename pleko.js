@@ -30,7 +30,16 @@ class Pleko {
     this.regions = regions;
   }
   draw() {
+    
     this.ctx.drawCircle(this.x, this.y, this.r, this.color);
+    this.ctx.drawCircle(this.x, this.y, this.r/2, "#fff");
+    
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "#000";
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(this.id, this.x, this.y+4);
+    this.ctx.fill();
+
     
     if(this.clicked && this.playable){
       this.ctx.drawLine(this.x, this.y, this.mousePosition.x, this.mousePosition.y);
