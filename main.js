@@ -26,6 +26,13 @@ function drawCircle(x, y, r, color="#fff"){
   this.fill();
 }
 
+function drawRect(x, y, w, h, color="#222"){
+  this.beginPath();
+  this.rect(x, y, w, h);
+  this.fillStyle = color;
+  this.fill();
+}
+
 function cls(){
   this.clearRect(0, 0, this.canvas.width, this.canvas.height)
 }
@@ -41,8 +48,8 @@ function main(){
   var balls = [];
   for (i=1; i<=4; i++){
     let r = 28;
-    let x = 1100;
-    let y = 10+(i*90);
+    let x = 1000;
+    let y = 50+(i*90);
 
     let vx = 0;
     let vy = 0;
@@ -50,12 +57,19 @@ function main(){
   }
 
   var player = new Pleko("Player", 200, 300, 30, 0, 0, true, '#fff');
-  
-  var objs = [...balls, player];
 
-  ctx.attach(objs);
+  var reg1 = new Region(0,0,56,56);
+  var reg2 = new Region(0,ctx.canvas.height-56,56,56);
+  var reg3 = new Region(ctx.canvas.width-56,0,56,56);
+  var reg4 = new Region(ctx.canvas.width-56,ctx.canvas.height-56,56,56);
+  
+  var objs = [...balls, player, ];
+  var regions = [reg1, reg2, reg3, reg4];
+
+  ctx.attach([...objs, ...regions]);
   objs.forEach((o)=>{
     o.setColiders(objs);
+    o.setRegions(regions);
     document.addEventListener("mousedown",(e) => handleMouseDown(e, o));
     document.addEventListener("mouseup",(e) => handleMouseUp(e, o));
     document.addEventListener("mousemove",(e) => handleMousemove(e, o));
@@ -65,10 +79,13 @@ function main(){
   function loop() {
     // LOOP
     ctx.cls();
-    objs.forEach(o=>{
+    regions.forEach(r=>r.draw());
+    objs.filter(a=>a.active).forEach(o=>{
+      console.log(o.id)
       o.draw();
       o.update();
     });
+    
     requestAnimationFrame(loop);
   }
 
@@ -79,6 +96,7 @@ CanvasRenderingContext2D.prototype.cls = cls;
 CanvasRenderingContext2D.prototype.attach = attach;
 CanvasRenderingContext2D.prototype.drawLine = drawLine;
 CanvasRenderingContext2D.prototype.drawCircle = drawCircle;
+CanvasRenderingContext2D.prototype.drawRect = drawRect;
 
 document.addEventListener("DOMContentLoaded",main)
 
