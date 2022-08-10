@@ -46,36 +46,59 @@ function main(){
   var ctx = createStage();
 
   var balls = [];
-  var cols = 5;
-  var rows = 6;
-  for (i=0; i<cols; i++){
-    for (j=0; j<rows; j++){
-      var id = ((i*rows)+j)+1;
-      var r = 28;
-      var x = 800 + i*3*r;
-      var y = 120 + j*3*r;
-  
-      let vx = 0;
-      let vy = 0;
-      balls.push(new Pleko(id, x, y, r, vx, vy, false));
-    }
-
+  var n = 15;
+  var colors = ["#FB0","#009","#900","#606","#F50","#099","#630","#222"];
+  var xpos = ctx.canvas.width - 400;
+  var ypos = ctx.canvas.height/2;
+  var r = 25;
+  var cn = 0;
+  for (i=0; i<n; i++){
+      var col=0;
+      if(cn>=colors.length) cn=0;
+      if(i>0 && i<=2) col=1;
+      if(i>2 && i<=5) col=2;
+      if(i>5 && i<=9) col=3;
+      if(i>9)         col=4;
+      var x = xpos + col*(1.8*r);
+      var y = ypos + - (col+2)*col*r + i*(2*r) ;
+      balls.push(new Pleko(i+1, x, y, r, 0, 0, false, colors[cn]));
+      cn++
   }
 
-  var player = new Pleko("Player", 200, ctx.canvas.height/2, 30, 0, 0, true, '#fff');
+  var players = [];
+  var player1 = new Pleko("Player 1", 200, ctx.canvas.height/2, 30, 0, 0, true, '#fff');
+  players.push(player1);
 
-  var reg1 = new Region(0,0,56,56);
-  var reg2 = new Region(0,ctx.canvas.height-56,56,56);
-  var reg3 = new Region(ctx.canvas.width-56,0,56,56);
-  var reg4 = new Region(ctx.canvas.width-56,ctx.canvas.height-56,56,56);
+
+  var sinks = [];
+  var size = 80;
+  var sink1 = new Sink(0,0,size,size);
+  var sink2 = new Sink(0,ctx.canvas.height-size,size,size);
+  var sink3 = new Sink(ctx.canvas.width-size,0,size,size);
+  var sink4 = new Sink(ctx.canvas.width-size,ctx.canvas.height-size,size,size);
+  var sink5 = new Sink(ctx.canvas.width/2-size/2,0,size,size);
+  var sink6 = new Sink(ctx.canvas.width/2-size/2,ctx.canvas.height-size,size,size);
+  sinks.push(sink1, sink2, sink3, sink4, sink5, sink6)
+
+  var walls = [];
+  var hwall = (ctx.canvas.width - 3*size)/2;
+  var vwall = (ctx.canvas.height - 2*size);
+  var wall1 = new Wall(size,0,hwall,size/3);
+  var wall2 = new Wall(2*size+hwall,0,hwall,size/3);
+  var wall3 = new Wall(size,ctx.canvas.height-size/3,hwall,size/3);
+  var wall4 = new Wall(2*size+hwall,ctx.canvas.height-size/3,hwall,size/3);
+  var wall5 = new Wall(0,size,size/3,vwall);
+  var wall6 = new Wall(ctx.canvas.width-size/3,size,size/3,vwall);
+  walls.push(wall1, wall2, wall3, wall4, wall5, wall6);
   
-  var objs = [...balls, player, ];
-  var regions = [reg1, reg2, reg3, reg4];
+  var coliders = [...balls, ...players];
 
-  ctx.attach([...objs, ...regions]);
-  objs.forEach((o)=>{
-    o.setColiders(objs);
-    o.setRegions(regions);
+  ctx.attach([...balls, ...players, ...sinks, ...walls]);
+
+  coliders.forEach((o)=>{
+    o.setColiders(coliders);
+    o.setWalls(walls);
+    o.setSinks(sinks);
     document.addEventListener("mousedown",(e) => handleMouseDown(e, o));
     document.addEventListener("mouseup",(e) => handleMouseUp(e, o));
     document.addEventListener("mousemove",(e) => handleMousemove(e, o));
@@ -85,8 +108,9 @@ function main(){
   function loop() {
     // LOOP
     ctx.cls();
-    regions.forEach(r=>r.draw());
-    objs.filter(a=>a.active).forEach(o=>{
+    sinks.filter(a=>a.active).forEach(r=>r.draw());
+    walls.filter(a=>a.active).forEach(r=>r.draw());
+    coliders.filter(a=>a.active).forEach(o=>{
       o.draw();
       o.update();
     });

@@ -10,7 +10,8 @@ class Pleko {
     this.vy = vy;
     this.ctx = {};
     this.coliders = [];
-    this.regions = [];
+    this.sinks = [];
+    this.walls = [];
     this.restitution = 0.991;
     this.ax = 1;
     this.ay = 1;
@@ -19,6 +20,14 @@ class Pleko {
     this.mousePosition = {x:0,y:0};
     this.willRelease = false;
     this.active = true;
+    this.getRectBounds = ()=>{
+      return {
+        left:   this.x - this.r,
+        right:  this.x + this.r,
+        top:    this.y - this.r,
+        bottom: this.y + this.r
+      }
+    }
   }
   setContext(ctx) {
     this.ctx = ctx;
@@ -26,8 +35,11 @@ class Pleko {
   setColiders(coliders) {
     this.coliders = coliders;
   }
-  setRegions(regions) {
-    this.regions = regions;
+  setSinks(sinks) {
+    this.sinks = sinks;
+  }
+  setWalls(walls) {
+    this.walls = walls;
   }
   draw() {
     
@@ -53,8 +65,9 @@ class Pleko {
     this.y += this.vy;
     if(this.playable) this.mouseAction();
     this.boundary();
-    this.colide();  
-    this.region();
+    this.colide();
+    this.wall();
+    this.sink();
   }
   mouseAction(){
     //console.log("mouse:", this.clicked ? "down" : "up");
@@ -98,10 +111,10 @@ class Pleko {
       }
     })  
   }
-  region(){
+  sink(){
     var margin = 0.6;
-    this.regions.forEach((region)=>{
-      if(this.x - this.r*margin > region.x && this.y - this.r*margin > region.y && this.x + this.r*margin < region.x + region.w && this.y + this.r*margin < region.y + region.h) {
+    this.sinks.forEach((sink)=>{
+      if(this.x - this.r*margin > sink.x && this.y - this.r*margin > sink.y && this.x + this.r*margin < sink.x + sink.w && this.y + this.r*margin < sink.y + sink.h) {
         this.r *= 0.9;
         this.vx *= 0.5;
         this.vy *= 0.5;
@@ -113,13 +126,52 @@ class Pleko {
       }
     })
   }
+  wall(){
+    
+    this.walls.forEach((wall)=>{
+      // temporary variables to set edges for testing
+      var testX = this.x;
+      var testY = this.y;
+    
+      // which edge is closest?
+      if (this.x < wall.x)              testX = wall.x;      // test left edge
+      else if (this.x > wall.x+wall.w)  testX = wall.x+wall.w;   // right edge
+      if (this.y < wall.y)              testY = wall.y;      // top edge
+      else if (this.y > wall.y+wall.h)  testY = wall.y+wall.h;   // bottom edge
+    
+      // get distance from closest edges
+      var distX = testX-this.x;
+      var distY = testY-this.y;
+     
+      var distance = Math.sqrt( (distX*distX) + (distY*distY) );
+      
+      // if the distance is less than the radius, collision!
+      if (distance <= this.r) {
+        
+        var vCollisionNorm = {x: distX/distance, y: distY/distance};
+
+        let vRelativeVelocity = {x: this.vx - 0, y: this.vy - 0};
+        let speed = vRelativeVelocity.x * vCollisionNorm.x + vRelativeVelocity.y * vCollisionNorm.y;
+
+        speed *= Math.min(this.restitution, wall.restitution);
+
+        if (speed < 0){
+          return;
+        }
+        let impulse = 2 * speed / (this.m + wall.m);
+        this.vx -= (impulse * wall.m * vCollisionNorm.x);
+        this.vy -= (impulse * wall.m * vCollisionNorm.y);
+      }
+    });
+  }
   boundary(){
     const hitSound = () => playNote("10", "sine", 0.3);
 
     if(this.x < this.r){
       hitSound();
-      this.vx = Math.abs(this.vx) * this.restitution;
       this.x = this.r;
+      this.vx = Math.abs(this.vx) * this.restitution;
+      
     } else if(this.x > this.ctx.canvas.width - this.r) {
       hitSound();
       this.vx = -Math.abs(this.vx) * this.restitution;
@@ -137,4 +189,27 @@ class Pleko {
     }
 
   };
+  circleRect(cx, cy, radius, rx, ry, rw, rh) {
+
+    // temporary variables to set edges for testing
+    var testX = cx;
+    var testY = cy;
+  
+    // which edge is closest?
+    if (cx < rx)         testX = rx;      // test left edge
+    else if (cx > rx+rw) testX = rx+rw;   // right edge
+    if (cy < ry)         testY = ry;      // top edge
+    else if (cy > ry+rh) testY = ry+rh;   // bottom edge
+  
+    // get distance from closest edges
+    var distX = cx-testX;
+    var distY = cy-testY;
+    var distance = Math.sqrt( (distX*distX) + (distY*distY) );
+  
+    // if the distance is less than the radius, collision!
+    if (distance <= radius) {
+      return true;
+    }
+    return false;
+  }
 }
